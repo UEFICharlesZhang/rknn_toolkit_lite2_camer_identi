@@ -34,12 +34,50 @@ RK3566_RK3568_RKNN_MODEL = 'resnet18_for_rk3566_rk3568.rknn'
 RK3588_RKNN_MODEL = 'resnet18_for_rk3588.rknn'
 RK3562_RKNN_MODEL = 'resnet18_for_rk3562.rknn'
 
+def capture_pic():
+    cam_port = 0
+    cam = cv2.VideoCapture(cam_port) 
+  
+    # reading the input using the camera 
+    result, image = cam.read() 
+    
+    # If image will detected without any error,  
+    # show result 
+    if result: 
+    
+        # showing result, it take frame name and image  
+        # output 
+        # cv2.imshow("pic_capture", image) 
+    
+        # saving image in local storage 
+        # cv2.imshow("org     image", image)
+        # cv2.waitKey(0) 
+
+        dim = (224, 224)
+        image = cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
+
+        # cv2.imshow("Resized image", image)
+        # cv2.waitKey(0) 
+
+        cv2.imwrite("pic_capture.png", image) 
+        # cv2.resize("pic_capture.png",224,224)
+
+def show_name(index):
+    filehandle = open("imagenet_classes_cn.en.zh-CN.txt","r")
+    listoflines = filehandle.readlines()
+    filehandle.close()
+    # print(listoflines[index])
+    # remove return
+    out_str="{}".format(listoflines[index].strip("\r\n"))
+    # print(out_str)
+    return out_str
 
 def show_top5(result):
     output = result[0].reshape(-1)
     # softmax
     output = np.exp(output)/sum(np.exp(output))
     output_sorted = sorted(output, reverse=True)
+
     top5_str = 'resnet18\n-----TOP 5-----\n'
     for i in range(5):
         value = output_sorted[i]
@@ -48,7 +86,15 @@ def show_top5(result):
             if (i + j) >= 5:
                 break
             if value > 0:
-                topi = '{}: {}\n'.format(index[j], value)
+                tempstr1 = '{}'.format(index[j])
+                # remove []
+                temp2 = format(tempstr1.strip("[]"))
+                # print(temp2)
+                #split str incase "[123 456]"
+                temp3 = temp2.split()
+                nameindex = int(temp3[0])
+                # print(show_name(nameindex))
+                topi = '{}: {}\n'.format(show_name(nameindex), value)
             else:
                 topi = '-1: 0.0\n'
             top5_str += topi
@@ -78,7 +124,8 @@ if __name__ == '__main__':
         exit(ret)
     print('done')
 
-    ori_img = cv2.imread('./space_shuttle_224.jpg')
+    capture_pic()
+    ori_img = cv2.imread('./pic_capture.png')
     img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2RGB)
 
     # init runtime environment
